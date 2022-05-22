@@ -15,6 +15,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -22,14 +23,12 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import pt.pa.Observer.Observable;
 import pt.pa.Observer.Observer;
 import pt.pa.graph.GraphController;
 import pt.pa.graph.Vertex;
 import pt.pa.model.GraphModel;
 import pt.pa.model.Hub;
 import pt.pa.model.Route;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,15 +36,29 @@ import java.util.List;
 
 public class GraphView implements Observer {
     private SmartGraphPanel<Hub, Route> graphView;
-    private Stage stage = new Stage(StageStyle.DECORATED);
-    private GraphModel model;
+    private GraphModel  model;
     private Button btAddRelationship;
     private Button btRemoveRelationship;
     private Button dijkstra;
     private Button undo;
     private Button save;
     private Button bfs;
-    private ComboBox<String> cbVertexId0;
+    private Label relationHub;
+    private Label hub1;
+    private Label hub2;
+    private Label distance;
+    private Label hubBfs;
+    private Label hub3;
+    private Label numIterations;
+    private HBox label1PlusCbVertexId1;
+    private HBox hboxCreateAndRemove;
+    private HBox label1PlushCbVertexId2;
+    private HBox hboxUndoAndSave;
+    private HBox distancePlusTextField;
+    private HBox hboxDijkstra;
+    private HBox hboxHub3AndCbVertexId3;
+    private HBox hboxIterations;
+    private HBox hboxAdjacencyBFSChart;
     private ComboBox<String> cbVertexId1;
     private ComboBox<String> cbVertexId2;
     private ComboBox<String> cbVertexId3;
@@ -61,23 +74,27 @@ public class GraphView implements Observer {
         this.model = model;
     }
 
+    /**
+     * This method is responsible for updating our view, receiving the changes from the model(subject class which is extended by the model) and updating them
+     */
     @Override
-    public void update(Observable subject, Object arg) {
+    public void update() {
         graphView.update();
-        cbVertexId0.getItems().clear();
         cbVertexId1.getItems().clear();
         cbVertexId2.getItems().clear();
         cbVertexId3.getItems().clear();
 
         List<Vertex<Hub>> list = new ArrayList<>(model.getGraph().vertices());
         for (Vertex<Hub> vert: list) {
-            cbVertexId0.getItems().add(String.valueOf(vert.element().getName()));
             cbVertexId1.getItems().add(String.valueOf(vert.element().getName()));
             cbVertexId2.getItems().add(String.valueOf(vert.element().getName()));
             cbVertexId3.getItems().add(String.valueOf(vert.element().getName()));
         }
     }
 
+    /**
+     * This method is responsible for designing our main window, implementing the graph into the SmartGraphPanel as well as set an appropriate size for the window
+     */
     public void designGraph(){
         String customProps = "edge.label = true" + "\n" + "edge.arrow = false";
         SmartGraphProperties properties = new SmartGraphProperties(customProps);
@@ -85,34 +102,51 @@ public class GraphView implements Observer {
         bPane.setCenter(new SmartGraphDemoContainer(graphView));
         bPane.setRight(createSidePanel());
         Scene scene = new Scene(bPane, 1480, 920);
-        stage = new Stage(StageStyle.DECORATED);
+        Stage stage = new Stage(StageStyle.DECORATED);
         stage.setTitle("JavaFX SmartGraph pt.pa.model.City Distances");
         stage.setMinHeight(1020);
         stage.setMinWidth(1620);
         stage.setScene(scene);
         stage.show();
         graphView.init();
-        for (Vertex<Hub> temp: model.getGraph().vertices()) {
-           insertVertexPosition(temp);
+        for (Vertex<Hub> vert: model.getGraph().vertices()) {
+            graphView.setVertexPosition(vert, vert.element().getPosition().getX(), vert.element().getPosition().getY());
         }
     }
 
-    public void insertVertexPosition(Vertex<Hub> vert){
-        graphView.setVertexPosition(vert, vert.element().getPosition().getX(), vert.element().getPosition().getY());
-    }
-
-    public void doDisplayAdjacency(){
-        Stage window = new Stage();
-        BorderPane root = new BorderPane();
+    /**
+     * Method responsible for setting our secondary window which is designed to show the data/information to the user
+     * @param window the Stage of our secondary window
+     * @param title The Title of our secondary window
+     */
+    public void secondaryWindow(Stage window, String title){
         window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Adjacency List:");
+        window.setTitle(title);
         window.setMinHeight(1000);
         window.setMinWidth(1000);
-        ObservableList<Text> obsList = FXCollections.observableArrayList();
-        ListView<Text> listView = new ListView<>();
+    }
+
+    /**
+     * Method responsible for setting our listview which is designed to show the data/information to the user in text format
+     * @param listView the list view that will be displayed
+     * @param obsList our observable list where the text will be added before its set on the listview
+     */
+    public void setUpListview(ListView<Text> listView ,ObservableList<Text> obsList){
         listView.setPrefSize(250, 920);
         listView.setStyle("-fx-control-inner-background: lightgrey;");
         listView.setItems(obsList);
+    }
+
+    /**
+     * This method is responsible for displaying our adjacency list, showing all our vertexes and edges
+     */
+    public void doDisplayAdjacency(){
+        Stage window = new Stage();
+        secondaryWindow(window, "Adjacency List:");
+        BorderPane root = new BorderPane();
+        ObservableList<Text> obsList = FXCollections.observableArrayList();
+        ListView<Text> listView = new ListView<>();
+        setUpListview(listView, obsList);
         String lines[] = model.getGraph().toString().split("\\r?\\n");
         Text[] text = new Text[lines.length];
         for(int i = 0; i < lines.length; i++){
@@ -128,13 +162,17 @@ public class GraphView implements Observer {
         window.showAndWait();
     }
 
-    public void doBarChart(HashMap<Vertex<Hub>, Integer> map, int numEdges, int numVert) {
+
+    /**
+     * This method is responsible for doing all the required metric for our project
+     * @param map our map with the vertexes and it's edges fully organized in decrescent order
+     * @param numEdges the total number of edges
+     * @param numVert the total number of vertexes
+     */
+    public void doMetrics(HashMap<Vertex<Hub>, Integer> map, int numEdges, int numVert) {
         Stage window = new Stage();
+        secondaryWindow(window, "Metrics:");
         BorderPane root = new BorderPane();
-        window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Adjacency List:");
-        window.setMinHeight(1000);
-        window.setMinWidth(1000);
         VBox center = new VBox();
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
@@ -154,9 +192,7 @@ public class GraphView implements Observer {
 
         ObservableList<Text> obsList = FXCollections.observableArrayList();
         ListView<Text> listView = new ListView<>();
-        listView.setPrefSize(250, 920);
-        listView.setStyle("-fx-control-inner-background: lightgrey;");
-        listView.setItems(obsList);
+        setUpListview(listView, obsList);
         Text text = null;
         for (Vertex<Hub> vert: map.keySet()) {
             text = new Text("");
@@ -176,18 +212,17 @@ public class GraphView implements Observer {
         window.showAndWait();
     }
 
+    /**
+     * This method is responsible for displaying the Result of running the BFS algorithm, showing all the vertexes till a certain lvl chosen by the user
+     * @param path the name of all vertexes/hubs will a certain depth
+     */
     public void doDisplayBFS(String path){
         Stage window = new Stage();
+        secondaryWindow(window, "BFS:");
         BorderPane root = new BorderPane();
-        window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Adjacency List:");
-        window.setMinHeight(1000);
-        window.setMinWidth(1000);
         ObservableList<Text> obsList = FXCollections.observableArrayList();
         ListView<Text> listView = new ListView<>();
-        listView.setPrefSize(250, 920);
-        listView.setStyle("-fx-control-inner-background: lightgrey;");
-        listView.setItems(obsList);
+        setUpListview(listView, obsList);
         Text text = new Text("Vertexes found:\n\t" + path);
         text.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 14));
         obsList.add(text);
@@ -197,18 +232,18 @@ public class GraphView implements Observer {
         window.showAndWait();
     }
 
+    /**
+     *This method is responsible for displaying the Result of running the Djkstra's algorithm, showing the minimum cost and the correct path
+     * @param cost the cost going from origin vertex to destination
+     * @param path contains all the vertexes needed to reach from one point to another
+     */
     public void doDisplayDijkstra(double cost, String path){
         Stage window = new Stage();
+        secondaryWindow(window, "Dijkstra:");
         BorderPane root = new BorderPane();
-        window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Adjacency List:");
-        window.setMinHeight(1000);
-        window.setMinWidth(1000);
         ObservableList<Text> obsList = FXCollections.observableArrayList();
         ListView<Text> listView = new ListView<>();
-        listView.setPrefSize(250, 920);
-        listView.setStyle("-fx-control-inner-background: lightgrey;");
-        listView.setItems(obsList);
+        setUpListview(listView, obsList);
         Text text = new Text("Cost: " + cost + "\nPath:\n\t" + path);
         text.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 14));
         obsList.add(text);
@@ -219,8 +254,13 @@ public class GraphView implements Observer {
     }
 
 
+    /**
+     *This method will be responsible for appointing what each task the controller must order/do upon a certain button being pressed
+     * The controller will then obtain all the information from the user and use it with the logic data from the model to generate what is asked
+     * @param controller The controller of out MVC pattern, who will be responsible in exchanging interactions between the view and the model
+     */
     public void setTriggers(GraphController controller){
-        chart.setOnAction(e -> controller.barChart());
+        chart.setOnAction(e -> controller.metrics());
         btAddRelationship.setOnAction(e -> {
             try {
                 controller.addEdge();
@@ -266,87 +306,155 @@ public class GraphView implements Observer {
         adjacency.setOnAction(e -> controller.displayAdjacency());
     }
 
-    private VBox createSidePanel() {
-        cbVertexId0 = new ComboBox<>();
-        cbVertexId0.setMaxWidth(Double.MAX_VALUE);
+    /**
+     * This method is focused on instancing all the comboBoxes
+     */
+    private void initiateComboBoxes(){
         cbVertexId1 = new ComboBox<>();
         cbVertexId1.setMaxWidth(Double.MAX_VALUE);
         cbVertexId2 = new ComboBox<>();
         cbVertexId2.setMaxWidth(Double.MAX_VALUE);
         cbVertexId3 = new ComboBox<>();
         cbVertexId3.setMaxWidth(Double.MAX_VALUE);
+    }
+
+    /**
+     * This method is focused on instancing all the labels
+     */
+    private void initiateLabels(){
+        relationHub = new Label("Create/Delete Relationship:");
+        relationHub.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 22));
+        hub1 = new Label("Hub1:");
+        hub1.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
+        hub2 = new Label("Hub2:");
+        hub2.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
+        distance = new Label("Distance:");
+        distance.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
+        hubBfs = new Label("Hub for BFS:");
+        hubBfs.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
+        hub3 = new Label("Hub:");
+        hub3.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
         txtIteration = new TextField("");
-        GridPane edgePane = new GridPane();
         txtEdgeDistance = new TextField("");
+        numIterations = new Label("Iterations:");
+        numIterations.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
+    }
+
+    /**
+     * This method is focused on instancing all the buttons
+     */
+    private void initiateButtons(){
         btAddRelationship = new Button("Create");
+        btAddRelationship.setStyle("-fx-background-color: grey; -fx-text-fill: white;");
         btRemoveRelationship = new Button("Remove");
+        btRemoveRelationship.setStyle("-fx-background-color: red; -fx-text-fill: white;");
         adjacency = new Button("Adjacency List");
+        adjacency.setStyle("-fx-background-color: grey; -fx-text-fill: white;");
+        undo = new Button("Undo");
+        undo.setStyle("-fx-background-color: grey; -fx-text-fill: white;");
+        save = new Button("Save");
+        save.setStyle("-fx-background-color: grey; -fx-text-fill: white;");
         dijkstra = new Button("Dijkstra");
         dijkstra.setStyle("-fx-background-color: green; -fx-text-fill: white;");
-        //dijkstra.setMaxSize(120, 50);
-        dijkstra.setFont(new Font(20));
-        btRemoveRelationship.setStyle("-fx-background-color: red; -fx-text-fill: white;");
-        undo = new Button("Undo");
-        //undo.setMinSize(200, 80);
-        undo.setFont(new Font(20));
-        undo.setStyle("-fx-background-color: blue; -fx-text-fill: white;");
-        save = new Button("Save");
-        //save.setMinSize(200, 80);
-        save.setFont(new Font(20));
-        save.setStyle("-fx-background-color: blue; -fx-text-fill: white;");
-        edgePane.setAlignment(Pos.CENTER);
-        edgePane.setHgap(5);
-        edgePane.setVgap(5);
-        edgePane.setPadding(new Insets(10,10,10,10));
-        Label relationHub = new Label("Create/Delete Relationship:");
-        relationHub.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 22));
-        edgePane.add(relationHub, 0, 1);
-        Label hub1 = new Label("Hub1:");
-        hub1.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
-        edgePane.add(hub1, 0, 3);
-        Label hub2 = new Label("Hub2:");
-        hub2.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
-        edgePane.add(hub2, 0, 4);
-        Label distance = new Label("Distance:");
-        distance.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
-        edgePane.add(distance, 0, 5);
-        edgePane.add(cbVertexId1, 1, 3);
-        edgePane.add(cbVertexId2, 1, 4);
-        edgePane.add(txtEdgeDistance, 1, 5);
-        edgePane.add(btAddRelationship, 1, 6);
-        edgePane.add(btRemoveRelationship, 2, 6);
-        edgePane.add(undo, 1, 11);
-        edgePane.add(save, 2, 11);
-        edgePane.add(dijkstra, 1, 12);
-        Label hubBfs = new Label("Hub for BFS:");
-        hubBfs.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
         bfs = new Button("BFS");
-        dijkstra.setMinSize(200, 80);
-        bfs.setFont(new Font(26));
         bfs.setStyle("-fx-background-color: green; -fx-text-fill: white;");
-        Label hub3 = new Label("Hub:");
-        hub3.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
-        edgePane.add(hub3, 0, 17);
-        edgePane.add(cbVertexId3, 1, 17);
-        Label numIterations = new Label("Iterations:");
-        numIterations.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 16));
-        edgePane.add(numIterations,0,18);
-        edgePane.add(txtIteration,1,18);
-        edgePane.add(bfs,1,20);
-        adjacency.setMinSize(200, 80);
-        adjacency.setFont(new Font(26));
-        edgePane.add(adjacency, 1,21);
-        chart = new Button("Bar Chart");
-        chart.setMinSize(200, 80);
-        chart.setFont(new Font(26));
-        edgePane.add(chart, 1,22);
+        chart = new Button("Metrics");
+        chart.setStyle("-fx-background-color: grey; -fx-text-fill: white;");
+    }
+
+    /**
+     * This method is focused on instancing all the Hboxes and place the other elements(labels, textfields...) inside them
+     */
+    private void initiateHBoxes(){
+        label1PlusCbVertexId1 = new HBox();
+        label1PlusCbVertexId1.setSpacing(40);
+        label1PlusCbVertexId1.getChildren().addAll(hub1, cbVertexId1);
+        hboxCreateAndRemove = new HBox();
+        hboxCreateAndRemove.setPadding(new Insets(7, 7, 7, 0));
+        hboxCreateAndRemove.setSpacing(20);
+        hboxCreateAndRemove.getChildren().addAll(btAddRelationship, btRemoveRelationship);
+        hboxCreateAndRemove.setPadding(new Insets(0, 0, 0, 95));
+        label1PlushCbVertexId2 = new HBox();
+        label1PlushCbVertexId2.setSpacing(40);
+        label1PlushCbVertexId2.getChildren().addAll(hub2, cbVertexId2);
+        hboxUndoAndSave = new HBox();
+        hboxUndoAndSave.setSpacing(20);
+        hboxUndoAndSave.getChildren().addAll(undo, save);
+        hboxUndoAndSave.setPadding(new Insets(0, 0, 0, 95));
+        distancePlusTextField = new HBox();
+        distancePlusTextField.setSpacing(13);
+        distancePlusTextField.getChildren().addAll(distance, txtEdgeDistance);
+        hboxDijkstra = new HBox();
+        hboxDijkstra.getChildren().addAll(dijkstra);
+        hboxDijkstra.setPadding(new Insets(0, 0, 0, 130));
+        hboxHub3AndCbVertexId3 = new HBox();
+        hboxHub3AndCbVertexId3.setSpacing(20);
+        hboxHub3AndCbVertexId3.getChildren().addAll(hub3, cbVertexId3);
+        hboxHub3AndCbVertexId3.setPadding(new Insets(0, 0, 0, 48));
+        hboxIterations = new HBox();
+        hboxIterations.setSpacing(20);
+        hboxIterations.getChildren().addAll(numIterations, txtIteration);
+        hboxAdjacencyBFSChart = new HBox();
+        hboxAdjacencyBFSChart.setSpacing(20);
+        hboxAdjacencyBFSChart.setPadding(new Insets(0, 20, 0, 48));
+        hboxAdjacencyBFSChart.getChildren().addAll(bfs, adjacency, chart);
+    }
+
+    /**
+     * This method serves to create all the interactables and its labels so that the user can interact with the application
+     * which will then be set to the right of out graphPanel view
+     * @return returns a Vbox with all the elements inside
+     */
+    private VBox createSidePanel() {
+        initiateComboBoxes();
+        initiateLabels();
+        initiateButtons();
+        initiateHBoxes();
+        GridPane edgePane = new GridPane();
+        edgePane.setAlignment(Pos.CENTER);
+        edgePane.setHgap(1);
+        edgePane.setVgap(5);
+        edgePane.add(relationHub, 0, 1);
+        edgePane.add(label1PlusCbVertexId1, 0, 3);
+        edgePane.add(label1PlushCbVertexId2, 0, 4);
+        edgePane.add(distancePlusTextField, 0, 5);
+        edgePane.add(hboxCreateAndRemove, 0, 6);
+        edgePane.add(hboxUndoAndSave, 0, 11);
+        edgePane.add(hboxDijkstra, 0, 12);
+        edgePane.add(hboxHub3AndCbVertexId3, 0, 17);
+        edgePane.add(hboxIterations,0,18);
+        edgePane.add(hboxAdjacencyBFSChart,0,20);
         panel.getChildren().add(edgePane);
         return panel;
     }
 
+    /**
+     * This method is responsible for obtaining the input of the user regarding the distance
+     * @return returns a String of the received user Input
+     */
     public String getDistance(){return txtEdgeDistance.getText();}
+
+    /**
+     * This method is responsible for obtaining the input of the user regarding the number of iterations/levels for BFS
+     * @return returns a String of the received user Input
+     */
     public String getIteration(){return txtIteration.getText();}
+
+    /**
+     * This method is responsible for obtaining the input of the user regarding the one of the vertexes we wish to use on create/remove edge
+     * @return returns a String of the received user Input
+     */
     public String getRelationshipFirst(){return cbVertexId1.getSelectionModel().getSelectedItem(); }
+
+    /**
+     * This method is responsible for obtaining the input of the user regarding the one of the vertexes we wish to use on create/remove edge
+     * @return returns a String of the received user Input
+     */
     public String getRelationshipSecond(){return cbVertexId2.getSelectionModel().getSelectedItem(); }
+
+    /**
+     * This method is responsible for obtaining the input of the user regarding the vertex we wish to use on BFS algorithm
+     * @return returns a String of the received user Input
+     */
     public String getBfsVert(){return cbVertexId3.getSelectionModel().getSelectedItem(); }
 }

@@ -12,6 +12,14 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         this.vertices = new HashMap<>();
     }
 
+    /**
+     * This method receives two vertexes and verifies if both are adjacent
+     * @param u the first vertex we receive to test the adjacency
+     * @param v the second vertex we receive to test the adjacency
+     *
+     * @return returns a boolean value whether it is true or false
+     * @throws InvalidVertexException throws an exception if one of the objects receive is not a vertex
+     */
     @Override
     public boolean areAdjacent(Vertex<V> u, Vertex<V> v) throws InvalidVertexException {
         MyVertex myU = checkVertex(u);
@@ -21,21 +29,37 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return !intersection.isEmpty();
     }
 
+    /**
+     * This method tries to find how many vertexes are in our map
+     * @return returns the number of vertexes
+     */
     @Override
     public int numVertices() {
         return vertices.size();
     }
 
+    /**
+     * This method tries to find how many edges are in our map of vertexes
+     * @return returns the number of edges
+     */
     @Override
     public int numEdges() {
         return edges().size();
     }
 
+    /**
+     * This method collects all the values of our map and returns it as a collection
+     * @return returns a collection of vertexes
+     */
     @Override
     public Collection<Vertex<V>> vertices() {
         return vertices.values();
     }
 
+    /**
+     * This method collects all the edges of the values of our map and returns it as a collection
+     * @return returns a collection of edges
+     */
     @Override
     public Collection<Edge<E, V>> edges() {
         Set<Edge<E,V>> edges = new HashSet<>();
@@ -47,6 +71,13 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return edges;
     }
 
+    /**
+     * This method is responsible for finding all the incident edges of a vertex
+     * @param v     vertex for which to obtain the incident edges
+     *
+     * @return returns all the edges linked to that vertex
+     * @throws InvalidVertexException if the vertex dos not exist then an exception is thrown
+     */
     @Override
     public Collection<Edge<E, V>> incidentEdges(Vertex<V> v) throws InvalidVertexException {
         if (!this.vertices.containsValue(v))
@@ -55,11 +86,18 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return checkVertex(v).incidentEdges;
     }
 
+    /**
+     * This method is responsible for finding the opposite vertex of another vertex both connected by an edge
+     * @param v         vertex on one end of <code>e</code>
+     * @param e         edge connected to <code>v</code>
+     * @return returns the opposite vertex
+     * @throws InvalidVertexException if one of the vertexes is considered invalid then this exception will be triggered
+     * @throws InvalidEdgeException if the edge is considered invalid (not an edge or not connected to the vertex) then this exception will be triggered
+     */
     @Override
     public Vertex<V> opposite(Vertex<V> v, Edge<E, V> e) throws InvalidVertexException, InvalidEdgeException {
         checkVertex(v);
         MyEdge edge = checkEdge(e);
-
         if (edge.vertices()[0] == v) {
             return edge.vertices()[1];
         } else {
@@ -67,6 +105,13 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         }
     }
 
+    /**
+     *This method is responsible for placing a entry (Hub + vertex) into our map (graph)
+     * @param vElement      the element to store at the vertex
+     *
+     * @return returns the vertex of the element tha was placed
+     * @throws InvalidVertexException this exception is triggered when the element already exists or if it is null
+     */
     @Override
     public Vertex<V> insertVertex(V vElement) throws InvalidVertexException {
         if (vertices.containsKey(vElement))
@@ -78,6 +123,16 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return myV;
     }
 
+    /**
+     *This method is responsible for inserting an edge, finding the two vertexes it belongs and adding it to their list
+     * @param u             a vertex
+     * @param v             another vertex
+     * @param edgeElement   the element to store in the new edge
+     *
+     * @return returns the edge after the element has been created successfully
+     * @throws InvalidVertexException this exception is triggered when the vertex doesn't exists or if it is null
+     * @throws InvalidEdgeException this exception is triggered when the element already exists or if it is null
+     */
     @Override
     public Edge<E, V> insertEdge(Vertex<V> u, Vertex<V> v, E edgeElement) throws InvalidVertexException, InvalidEdgeException {
         if (!vertices.containsKey(u.element()) || !vertices.containsKey(v.element()))
@@ -98,6 +153,16 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return newEdge;
     }
 
+    /**
+     *This method is responsible for inserting an edge, finding the two vertexes via the elements it belongs and adding it to their list
+     * @param vElement1     a vertex's stored element
+     * @param vElement2     another vertex's stored element
+     * @param edgeElement   the element to store in the new edge
+     *
+     * @return returns the edge after the element has been created successfully
+     * @throws InvalidVertexException this exception is triggered when the vertex doesn't exists or if it is null
+     * @throws InvalidEdgeException this exception is triggered when the element already exists or if it is null
+     */
     @Override
     public Edge<E, V> insertEdge(V vElement1, V vElement2, E edgeElement) throws InvalidVertexException, InvalidEdgeException {
         if(vElement1 == null || vElement2 == null || !vertices.containsKey(vElement1) || !vertices.containsKey(vElement2))
@@ -107,6 +172,13 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return insertEdge(v1, v2, edgeElement);
     }
 
+    /**
+     * This method is responsible for removing a vertex and its key from the map
+     * @param v     vertex to remove
+     *
+     * @return returns the removed element
+     * @throws InvalidVertexException if the vertex doesn't exist or if it has incident edges then this exception will be triggered
+     */
     @Override
     public V removeVertex(Vertex<V> v) throws InvalidVertexException {
         if (!vertices.containsValue(v))
@@ -122,6 +194,13 @@ public class GraphAdjacencyList<V,E> implements Graph<V, E> {
         return vertex.element;
     }
 
+    /**
+     * This method is responsible for removing an edge from the list of edges of the 2 vertexes that contain said edge
+     * @param e     edge to remove
+     *
+     * @return returns the element of the removed edge
+     * @throws InvalidEdgeException this exception is triggered when the edge already doesn't exists or if it is null
+     */
     @Override
     public E removeEdge(Edge<E, V> e) throws InvalidEdgeException {
         Collection<Edge<E,V>> listOfEdges = edges();

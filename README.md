@@ -27,32 +27,54 @@ For example: If the user wishes to read a determined sgb he must type the desire
 even if there's only 1 route in that sgb he still must type the desired route so if we were to choose sgb32 it would have to be "sgb32 routes_1"
 we made it this way so theres a common ground when it comes to find a certain sgb and its route so if we in the future were to add another sgb or another route
 the user would just need to type it without requiring any changes in the code.
+Also a Strategy Pattern has been implemented where the user can choose which type of graph he wishes to create, by default it will always be the 
+AdjacencyListGraph but if the user types the desired dataset followed by the letter e then the graph will be chosen as an EdgeList (example: sgb32 routes_1 e)
 
-Upon getting the desired route a pop up will show containing the graph, this part of the code is the one that uses the [JavaFXSmartGraph](https://github.com/brunomnsilva/JavaFXSmartGraph).
-However that is not the end of out application, on the main screen will now be a title on the top showing which sgb we are viewing and
-on the left side there will be numerous options that the user can pick (for the 1st milestone only 2 options exist), 
-the user simply has to type the number that identifies one of these options in order to activate them.
+Upon getting the desired route a pop up will show containing the graph, this part of the code is the one that uses the [JavaFXSmartGraph](https://github.com/brunomnsilva/JavaFXSmartGraph)
+and this will now be considered our main screen.
+This main screen will now have all the available options the user can do.
 
 These options are:
 
-`1 - New Dataset:` By using this one the user can "backtrack" and from the current dataset in order to view another one.
+`1 - Creating Edges:` To create an edge the user must choose from the first two ComboBoxes the desired vertexes they wish to link as well as typing the distance that is between them,
+if theres no connection between those 2 vertexes then a new connection will be made, to make such connection the user must press the create button.
 
-`2 - Adjacency List:` By using this option a javafx Observable list will appear on the center and right side of the main screen displaying all the vertexes and the incident edges attached to each one.
+`2 - Creating Edges:` To remove an edge the user must choose from the first two ComboBoxes the desired vertexes they wish to remove the connection then click on the remove Button.
 
-We opted to have the application work this way instead of just applying and Hbox onto the [JavaFXSmartGraph](https://github.com/brunomnsilva/JavaFXSmartGraph) and display it
-on the main screen because this way in the future we can display any sort of necessary information onto our main screen, effectively turning it into a
-gatherer of intel of sorts while keeping the visual part of it separated on another window to ease the observation of the graph without any other distractions surrounding it.
+`3 - Undo:` To Undo an action the user must simply click the undo button. (We are currently experiencing a visual/graphical bug where for some reason the memento changes arent being shown in the FXSmartGraph
+however the memento pattern is fully implemented and working for it is possible to see the changes of the actual graph when we do other options such as seeing the adjacency list where it shows the new edges being either removed or created when we backtrack
+as well bfs and dijkstra algorithm recognizing our Undos), for example if we create and edge then type undo that edge will not be seen on the adjacency list nor will be recognized on the algorithms.
 
+`4 - Save:` This option will save the changes we do to our graph, overwritting the routes.txt file with the new or removed edges so next time we load that dataset, the changes will already be visible/applied, in order to do this option
+the user must click the save button.
+
+`5 - Dijkstra:` This option will apply the Dijkstra algorithm to our graph, where basically the user must choose the first city (using the comboBoxes above) which will be considered our origin, then the user
+must choose the second city on the second comboBox to be considered our destination, after that all the user has to do is click on the Dijkstra button, if the pathway is possible then he will show the shortest/less cost path, if it isnt possible
+then there will be an alert/popup message displayed warning the user that it is impossible to create a path for those 2 cities.
+
+`6 - BFS:` This option will apply the BFS algorithm to our graph, to do this the user must select a city from the comboBox(the 3rd comboBox) below (the one closest to the BFS button) and select the number of iterations
+the user wishes to do then simply click the BFS Button. This will then do the algorithm and return the neighboring cities depending on how many iterations it was made.
+
+`7 - Adjacency List:` This button simple displayed the list of adjancencies of our graph depending on the type chosen when loading the dataset (EdgeList or AdjacencyList), this output will be shown
+differently since both have a different vertex and edge structure.
+
+`8 - Bar chart:` This button simply has all the metrics that were asked to calculate on out graph, it will be displayed all the vertexes rearranged by the number of edges (de-crescent order) as well as showing the number of edges each one has
+it will also display the total number of vertexes we have on our graph as well as the total number of edges. It will displayed the number of subgraphs that our graph contains and will also
+display a proper chart showing the top 5 cities of our graph(the ones with most edges). To do all of this the user must click the bar chart button.
 
 # Classes used
 
 `Hub:` This class will contain the name and weight of a Hub, basically storing the name of the hub
-plus its ammount/weight, other than that the methods are simply getters and setters.
+plus its ammount/weight and their position on the graph, other than that the methods are simply getters and setters.
 
 `Route:` This class will contain the distance, storing the distance and having its getters and setters.
 
-`FileReader:` This class will focus solely on reading the inputs of the user and apply them, it's where the graph will be stored as a variable/object as well as other variables that we deemed
- necessary such as Logistic Network (will be further explain on the class below why we created this)
+`Positions` This class will contain the coordinates x and y of a hub and well as getters.
+
+`DatasetReader:` This class will focus solely on reading the dataset files.
+
+`ManipulateInputs:` This class will be responsable for knowing which dataset to read after receiving the user input as well as manipulate said input
+to create the Logistic Network and issue our Controller.
 
 `Logistic Network:` This class will contain the information obtained from all the text files, basically storing everything so that later may be used
 on building the graph, though it might seem rather unnecessary since we could just read and build the graph using simply local variables on the FileReader this way provides an ease of access
@@ -62,48 +84,53 @@ we can easily apply the alterations here and then write them back onto the curre
 `Alerts:` This class is rather peculiar, it will pretty much function as a pop-up window to display errors / messages, so it works kinda like an exception but instead this alert 
 is thrown showing the error that is happening to the user so he may he correct himself.
  
-`GraphicalUI:` As the name suggests, this class will contain the methods that will manipulate what will be displayed onto the user.
+`GraphicalUI:` A simple UI class that will mainly serve to show the first screen where we obtain our dataset before it closes off.
+
+`GraphView:` The main view of out project it will save to display everything that we need to know about the project as well as all the options the user has.
 
 `GraphAdjacencyList:` This is our graph class, it uses the data structure of an adjacency list, the template was obtained from the Advanced Programing Class pdf file
 that discusses the 3 types of structures that can be used (matrix / edgelist / adjacencyList). It contains all the methods to be able to manipulate the information and create our graph.
 
-# Important Methods Explanation
+`GraphController:` This class is out controller and pretty much serves to link the view with the model to obtain an send data around.
 
-## FileReader
+`GraphModel` This class contains all the functionalities of out project, its pretty much where the logic data is and where everything is processed.
 
-`readInput:` This method will be purely dedicated in reading the inputs of the user, at first it will detect if a graph is already being displayed,
-if so then it will skip that part and go into the switch case condition, this switch case uses an int to choose which case to go to,
-the int is tied to the user's input when it comes to choose one of the many options that will be implemented to manipulate/affect the graph, for now
-he can only read another dataset(reset the app in a way), or choose to display an the list of adjacencies.
+`Observable` The Observable interface that is needed to implement the Observer pattern.
 
-`createNetwork:` This method will be responsible to instantiate the logisticNetwork object and place what is read from the text files onto it so that it may be
-at a later time used to create our graph.
+`Observer` The Observer interface that is needed to implement the Observer pattern.
 
-`createVertexes:` This method will create the vertexes of hour graph.
+`Subject` The abstract class that is extended by our Model as a way to properly notify our observers (View) and apply the Observr Pattern.
 
-`createEdges:` After the edges have been created this method will implement all of its edges, passing the information down to our GraphAdjacencyList
-to update our already existing vertexes.
+`Memento` The Memento interface that will be implementend by our private class inside the model in order to use the Memento pattern.
+
+`Originator` The Originator interface that will be used to apply our Memento pattern.
+
+`Caretaker` The Caretaker class that will be used to manipulate our memento in order to apply runtime saves to the changes being done.
+
+`Dijkstra` The Dijkstra class that contains the Dijkstra algorithm so that we can apply it.
+
+`DijkstraResult` The DijkstraResult class will contain the correct/minimal cost Path as well as the actualy cost that it takes to go from point A to B
+this class is returned by the Dijkstra Class.
+
+`BreathFirstSearch` This class applys the BFS algorithm to out graph and return the result after x iterations (an input the user chooses).
+
+# Important/complex Methods Explanation
+
+## GraphModel
+
+`centrality()` This method is responsible for rearranging the graph so that we can order it by how many edges each vertex has (de-crescent order)
+
+`numberOfSubGraphs()` This method is responsable  in returning the number of subgraphs a graph has.
+
+`dijkstra(Vertex<Hub> hub1, Vertex<Hub> hub2)` This method is responsable for sending our graph onto our Dijkstra class in order to apply the algorith,
+since the algorithm we used was the one taught in our University classes, that algorithm contained a bug where if the graph had more than one subgraph
+then it would blow up, to fix this we decided to simply send the subgraph where both vertexes belong since every other vertex outside that subgraph
+has a value of infinite and therefore meaningless.(it uses some auxiliary subclasses in order to avoid bloating)
 
 ## Alerts
 
 `Display` This method will be used to create a pop-up window to warn the user that something he types is incorrect and the files couldn't be found,
 it extends from FiLeNotFoundException and a super with the message so it also displays on console.
-
-## GraphicalUI
-
-`addTopContents` This will be responsible for adding the title of our dataset so we know which sgb we have chosen, its an Hbox that will be manipulated into being on top of the screen.
-
-`addBottomContents` This will be responsible for adding the input box onto our screen, so that we may receive the user input, it also creates an enter button to send the information though pressing enter on the keyboard works too.
-
-`addLeftContents` This will be responsible in displaying the numerous options that will exist on our application. it will pretty much show a list of all available choices the user can do after it has loaded
-the graph.
-
-`designGraph` This method will be responsible for designing the graph after all the information has been obtained.
-
-`setGraphPositions` This method is called from `designGraph` and will place all the vertexes on the correct positions.
-
-`displayAdjacency` This method is one of the options that the user will have after the graph has been loaded, and pretty much
-serves to show the list of adjacency to our user in a frontend approach.
 
 ## GraphAdjacencyList
 
@@ -111,6 +138,9 @@ Every method from this class already exists on another class called GraphEdgeLis
 the graph with a different data structure, so basically GraphAdjacencyList does what GraphEdgeList does but the methods were
 changed/developed to work with an entirely new data structure where each vertex holds a list of incident edges.
 
+## GraphView
+
+`createSidePanel()` This is responsable for creating all the buttons/texfields and comboBoxes that will be displayed to the user.
 
 
 # File and folder structure

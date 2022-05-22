@@ -7,14 +7,17 @@ import pt.pa.graph.Vertex;
 
 import java.util.*;
 
+/**
+ * This class os dedicated only in applying the Dijsktra algorithm
+ */
 public class Dijkstra {
 
     /**
-     *
-     * @param g The graph that we will be iterating on
+     *This method will apply the Dijkstra algorithm in order to find the best routes from vertex A to vertex B
+     * @param g The graph that we will be applying the algorithm
      * @param origin The vertex of Origin
      * @param dest The vertex that is our destination
-     * @return returns the result of out dijkstra algorithm containg the correct path and the cost
+     * @return returns the result of out dijkstra algorithm containing the correct path and the total cost
      */
     public DijkstraResult<Hub> dijkstra(Graph<Hub, Route> g,
                                                Vertex<Hub> origin,
@@ -28,12 +31,9 @@ public class Dijkstra {
             predecessors.put(v, null);
             minDist.put(v, Double.MAX_VALUE);
         }
-
         minDist.put(origin, 0.0);
-
         while(!unvisited.isEmpty()){
             Vertex<Hub> currentV = findMinCostVertex(minDist, unvisited);
-
             for (Edge<Route, Hub> e : g.incidentEdges(currentV)) {
                 Vertex<Hub> oppositeV = g.opposite(currentV, e);
                 if(unvisited.contains(oppositeV))
@@ -66,17 +66,14 @@ public class Dijkstra {
             path.add(current);
             current = predecessors.get(current);
         }
-
         path.add(origin);
-
         Collections.reverse(path);
-
         return new DijkstraResult<>(cost, path);
     }
 
 
     /**
-     *
+     *This method serves as an auxiliary method pf the djisktra algorithm, it's purpose is to fnd the min cost vertex
      * @param distances Map of out distance/hubs
      * @param unvisited Unvisited vertexes
      * @return return the next vertex that possesses the minimum cost
@@ -86,17 +83,15 @@ public class Dijkstra {
     {
         Vertex<Hub> minCostVertex = null;
         double minCostValue = Double.MAX_VALUE;
-
         for(Vertex<Hub> v : unvisited)
         {
             Double distV = distances.get(v);
             if(distV < minCostValue)
             {
-                minCostValue = distV;;
+                minCostValue = distV;
                 minCostVertex = v;
             }
         }
-
         return minCostVertex;
     }
 

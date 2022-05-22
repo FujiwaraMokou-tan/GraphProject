@@ -11,13 +11,17 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-
+/**
+ * The model of our MVC pattern, it contains all the logical data required and necessary
+ */
 public class GraphModel extends Subject implements Originator {
     Graph<Hub, Route> distances;
-    Dijkstra dijkstra;
 
+    /**
+     * Constructor of our class it simply initializes our graph
+     * @param type refers to the type of graph we want to create (Strategy pattern)
+     */
     public GraphModel(boolean type){
-        dijkstra = new Dijkstra();
         if(type)
             distances = new GraphAdjacencyList<>();
         else
@@ -29,7 +33,7 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
+     *This method inserts the data(related to the amount of vertexes) we obtained from reading our dataset into the distances graph
      * @param logisticNetwork contains all the necessary information to create the graph's vertexes
      */
     public void createVertexesFromDataset(LogisticNetwork logisticNetwork){
@@ -39,15 +43,7 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
-     * @return returns the current graph
-     */
-    public Graph<Hub, Route> getDistances() {
-        return distances;
-    }
-
-    /**
-     *
+     *This method inserts the data(related to the amount of Edges) we obtained from reading our dataset into the distances graph
      * @param logisticNetwork contains all the necessary information to create the graph's edges
      */
     public void createEdgesFromDataset(LogisticNetwork logisticNetwork){
@@ -64,11 +60,11 @@ public class GraphModel extends Subject implements Originator {
 
     /**
      *
-     * @param sourceHub one of the hubs that will be used in the comparison to check if the edge alreadu exists
-     * @param destinationHub second hubs that will be used in the comparison to check if the edge alreadu exists
+     * @param sourceHub one of the hubs that will be used in the comparison to check if the edge already exists
+     * @param destinationHub second hubs that will be used in the comparison to check if the edge already exists
      * @param distances graph of our dataset
-     * @return
-     * @throws InvalidVertexException
+     * @return a boolean value depending if the connection exists or not
+     * @throws InvalidVertexException throws an Alert
      */
     private boolean existConnection(Hub sourceHub, Hub destinationHub, Graph<Hub, Route> distances) throws InvalidVertexException {
         Vertex<Hub> vertex1 = null;
@@ -86,20 +82,28 @@ public class GraphModel extends Subject implements Originator {
         }
     }
 
+    /**
+     *The method that returns how many vertexes we have
+     * @return returns the number of edges
+     */
     public int numOfEdges(){
         return distances.numEdges();
     }
 
+    /**
+     *The method that returns how many vertexes we have
+     * @return returns the number of vertexes
+     */
     public int numOfVertex(){
         return distances.numVertices();
     }
 
     /**
      * Orders the Map in a crescent order based of how many edges each vertex has
-     * @return return a sorted Map
+     * @return return a sorted Map from highest number of edges to lowest
      */
     public HashMap<Vertex<Hub>, Integer> centrality(){
-        HashMap<Vertex<Hub>, Integer> unsortedList = new HashMap<>();
+        Map<Vertex<Hub>, Integer> unsortedList = new HashMap<>();
         for (Vertex<Hub> vert: distances.vertices()) {
             unsortedList.put(vert, distances.incidentEdges(vert).size());
         }
@@ -114,7 +118,7 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
+     *Method to return the exact vertex in the graph that corresponds to the Hub
      * @param name Name of a Hub
      * @return return the vertex of said Hub
      */
@@ -127,10 +131,21 @@ public class GraphModel extends Subject implements Originator {
         return null;
     }
 
+    /**
+     *This method creates an edge by linking both vertexes together with a route
+     * @param vert1 First vertex that will be used in the edge
+     * @param vert2 Second vertex that will be used in the edge
+     * @param distance The route which will contain the distance between each vertex
+     */
     public void createEdge(Vertex<Hub> vert1, Vertex<Hub> vert2, Route distance){
         distances.insertEdge(vert1, vert2, distance);
     }
 
+    /**
+     * This method removes an edge by finding the edge the two vertexes are connected
+     * @param vert1 First vertex that will be used in the edge
+     * @param vert2 Second vertex that will be used in the edge
+     */
     public void removeEdge(Vertex<Hub> vert1, Vertex<Hub> vert2){
         for (Edge<Route, Hub> edge: distances.edges()) {
             if(distances.incidentEdges(vert1).contains(edge) && distances.incidentEdges(vert2).contains(edge)) {
@@ -140,21 +155,26 @@ public class GraphModel extends Subject implements Originator {
         }
     }
 
-    public void sendNotification(){
-        notifyObservers(null);
-    }
-
+    /**
+     *
+     * Method that returns a new Memento with the purpose to be stored on the Caretaker
+     * @return returns the memento of the performed action
+     */
     public Memento createMemento(){
         return new ModelMemento(distances);
     }
 
-    public void setMemento(Memento memento){
-        distances = ((ModelMemento)memento).distancesMem;
-    }
-
     /**
      *
-     * @return returns the number of subgraphs inside a graph
+     * @param memento receives a Memento and replaces the stored variable with it
+     */
+    public void setMemento(Memento memento){
+        distances = ((ModelMemento)memento).distancesMem;
+        }
+
+    /**
+     *This method serves to find how many sub-graphs are in a graph
+     * @return returns the number of sub-graphs inside a graph
      */
     public int numberOfSubGraphs(){
         int counter=1;
@@ -181,13 +201,14 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
+     *Method to obtain the result of the Dijkstra algorithm
      * @param hub1 The hub vertex that will be considered the origin of Dijkstra's algorithm
      * @param hub2 The hub vertex that will be considered the destination of Dijkstra's algorithm
-     * @return returns the result after the algorith has been implemented
-     * @throws Alerts Throws an Alert in case something goes wrong
+     * @return returns the result after the algorithm has been implemented
+     * @throws Alerts Throws an Alert in case something goes wrong in the following auxiliary methods
      */
     public DijkstraResult<Hub> dijkstra(Vertex<Hub> hub1, Vertex<Hub> hub2) throws Alerts {
+        Dijkstra dijkstra = new Dijkstra();
         Graph<Hub, Route> newGraph = createGraph(hub1, hub2);
         for (Vertex<Hub> temp: newGraph.vertices()) {
             if(hub1.element().getName().equalsIgnoreCase(temp.element().getName())){
@@ -197,8 +218,7 @@ public class GraphModel extends Subject implements Originator {
                 hub2 = temp;
             }
         }
-        DijkstraResult<Hub> result = dijkstra.dijkstra(newGraph, hub1, hub2);
-        return result;
+        return dijkstra.dijkstra(newGraph, hub1, hub2);
     }
 
     /**
@@ -208,7 +228,7 @@ public class GraphModel extends Subject implements Originator {
      * @param origin The hub vertex that will be considered the origin of Dijkstra's algorithm
      * @param dest The hub vertex that will be considered the destination of Dijkstra's algorithm
      * @return returns the graph that will be used on Dijkstra's algorithm
-     * @throws Alerts
+     * @throws Alerts Throws an Alert in case something goes wrong in the following auxiliary methods
      */
     public Graph<Hub, Route> createGraph(Vertex<Hub> origin, Vertex<Hub> dest) throws Alerts {
         List<Vertex<Hub>> visited = availableVertexesForDijkstra(origin, dest);
@@ -218,12 +238,11 @@ public class GraphModel extends Subject implements Originator {
         else
             newGraph = new GraphEdgeList<>();
         newGraph = createMiniGraph(newGraph, visited);
-
         return newGraph;
     }
 
     /**
-     *
+     *This method find all available methods for to be rin on Dijkstra
      * @param origin The hub vertex that will be considered the origin of Dijkstra's algorithm
      * @param dest The hub vertex that will be considered the destination of Dijkstra's algorithm
      * @return returns the list of all possible vertexes the algorithm can path through
@@ -249,10 +268,11 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
+     *This method will create a graph where it ignores any vertex that would be value infinite in Dijkstra,
+     * those vertexes can be neglected since they are impossible to ever be one of the solutions in determining the lowest cost path
      * @param newGraph the subgraph where all the vertexes are located
-     * @param visited
-     * @return
+     * @param visited all the vertexes that can be visited
+     * @return return a graph so that we can use it to apply the dijkstra algorithm
      */
     public Graph<Hub, Route> createMiniGraph(Graph<Hub, Route> newGraph, List<Vertex<Hub>> visited){
         List<Edge<Route, Hub>> edgeList= new ArrayList<>();
@@ -262,7 +282,6 @@ public class GraphModel extends Subject implements Originator {
                     edgeList.add(edges);
             }
         }
-
         Set<Vertex<Hub>> set = new HashSet<>();
         for (Edge<Route, Hub> edges:edgeList) {
             if(!set.contains(edges.vertices()[0])){
@@ -279,18 +298,18 @@ public class GraphModel extends Subject implements Originator {
     }
 
     /**
-     *
+     *This method will be called whenever we want to apply the BFS algorithm to a certain vertex
      * @param vert vertex of origin
      * @param counter number of levels we will iterate our bfs
      * @return returns the result of the BFS application
      */
     public List<Vertex<Hub>> applyBFS(Vertex<Hub> vert, int counter){
-        BreathFirstSearch bfs = new BreathFirstSearch();
-        List<Vertex<Hub>> list = new ArrayList<>(bfs.BFS(distances, vert, counter));
-        return list;
+        return new ArrayList<>(new BreathFirstSearch().BFS(distances, vert, counter));
     }
 
-
+    /**
+     * Private class necessary to implement the Memento pattern
+     */
     private class ModelMemento implements Memento{
         public Graph<Hub, Route> distancesMem;
 

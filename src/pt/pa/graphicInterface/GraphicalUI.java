@@ -14,19 +14,18 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class GraphicalUI {
-    Button btn = new Button("Enter");
+
 
     /**
-     *
-     * @param content String value which will be displayed as the title/tooltip for the user
+     *This method is responsible for warnign the user about how to type a desired dataset
      * @param root Borderpane which will show the available elements set at the Top of the screen
      * @param hbox wrapper which will have a textfield inside
      */
-    public void addTopContents(String content, BorderPane root, HBox hbox) {
+    public void addTopContents(BorderPane root, HBox hbox) {
         hbox.setPadding(new Insets(15, 12, 15, 12));
         hbox.setSpacing(10);
         hbox.setStyle("-fx-background-color: #00B7E1;");
-        Text text = new Text(content);
+        Text text = new Text("Choose your Dataset: (correct sgb + desired route ex: sgb128 routes_1)\n If you wish to load the Edgelist then do: sgb128 routes_1 e");
         text.setFont(Font.font("Century Schoolbook", FontWeight.BOLD, 20));
         hbox.getChildren().add(text);
         hbox.setAlignment(Pos.CENTER);
@@ -34,12 +33,14 @@ public class GraphicalUI {
     }
 
     /**
-     *
+     *This method simply shows a textfield at the bottom so the user can type which dataset he wishes to open
      * @param root Borderpane which will show the available elements set at the bottom of the screen
      * @param obtainInput class filereader which will be responsable for reading the inputs typed by the user
+     * @param stage this stage represents the first window of the app where the user will be able to type the desired dataset
      */
-    public void addBottomContents(BorderPane root, ManipulateInputs obtainInput, Stage stage) {
+    public void addBottomContents(BorderPane root, ManipulateDatasets obtainInput, Stage stage) {
         TextField tf = new TextField();
+        Button btn = new Button("Enter");
         VBox vbox = new VBox();
         tf.setMinSize(12, 10);
         btn.setPrefWidth(1400);

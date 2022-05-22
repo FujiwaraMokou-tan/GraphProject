@@ -11,8 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- *
- * @author PC
+ * This class is responsible into sending alert messaged to the user via pop-ups
  */
 public class Alerts extends Exception {
 
@@ -21,6 +20,12 @@ public class Alerts extends Exception {
         display(message, title);
     }
 
+    /**
+     *This method is responsible for creating a pop-up message to warn the user, this pop-up is completely
+     * seperated from the main window so it can be closed without problems
+     * @param message string variable containing the message to tell the user
+     * @param title string variable containing the title that will be on top of the pop-up to tell the user
+     */
     public static void display(String message, String title){
         Stage window = new Stage();
         window.initModality(Modality.APPLICATION_MODAL);

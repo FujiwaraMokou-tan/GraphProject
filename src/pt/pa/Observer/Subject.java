@@ -29,7 +29,7 @@ public class Subject implements Observable {
     @Override
     public void notifyObservers(Object arg) {
         for(Observer o : observers) {
-            o.update(this, arg);
+            o.update();
         }
     }
 }
